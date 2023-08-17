@@ -65,7 +65,7 @@ mqtt.init_app(app)
 # ------------ API ------------
 # -----------------------------
 
-@app.get("/ping")
+@app.get("/api/ping")
 def ping():
     return {"Ping": "pong"}
 
@@ -75,7 +75,7 @@ def get_courses():
     courses = db.query(models.Course).all()
     return courses
 
-@app.get("/attendance")
+@app.get("/api/attendance")
 def get_courses():
     db = SessionLocal()
     attendances = db.query(models.Attendance).all()
@@ -150,7 +150,7 @@ async def message_to_topic(client, topic, payload, qos, properties):
 
 active_websockets: List[WebSocket] = []
 
-@app.websocket("/update")
+@app.websocket("/api/update")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     active_websockets.append(websocket)
@@ -171,4 +171,3 @@ async def send_to_websockets(payload: str):
             await websocket.send_text(payload)  # Send payload to the WebSocket
         except Exception as e:
             print("WebSocket error:", e)
-        
