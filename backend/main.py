@@ -1,8 +1,8 @@
 import os
 import datetime
+from typing import Union, List
 
 # Fast API Imports
-from typing import Union
 from fastapi import Depends, FastAPI, HTTPException
 
 # DB Imports
@@ -12,6 +12,9 @@ from .database import SessionLocal, engine
 
 # MQTT Imports
 from fastapi_mqtt import FastMQTT, MQTTConfig
+
+# Websocket Imports
+from fastapi import WebSocket, WebSocketDisconnect
 
 app = FastAPI()
 
@@ -80,16 +83,18 @@ async def new_attendance(deviceId: int, cardId: str):
     formatted_date = current_date.strftime('%Y-%m-%d')
 
     attendance = db.query(models.Attendance).filter(models.Attendance.course_id == course.id).filter(models.Attendance.student_id == student.id).filter(models.Attendance.date == formatted_date).first()
+
+    # 4. If attendance does not exist, create a new attendance
     if(attendance == None) : 
         attendance = models.Attendance(course_id=course.id, student_id=student.id, date=formatted_date)
         db.add(attendance)
         db.commit()
         db.refresh(attendance)
         print(f"Attendance saved | card id: {cardId} from device : {deviceId} | student: {student.name} course: {course.name}")
+        await send_to_websockets(f"Attendance received | {student.name}")
     else:
         print(f"Attendance already taken | card id: {cardId} from device : {deviceId} | student: {student.name} course: {course.name}")
-    
-
+        await send_to_websockets(f"Attendance already received | {student.name}")
 # ------------ MQTT ------------
 # ------------------------------
 
@@ -116,5 +121,30 @@ async def message_to_topic(client, topic, payload, qos, properties):
     await new_attendance(topic[11:], payload.decode())
 
 
+# ------------ WebSocket ------------
+# -----------------------------------
+
+active_websockets: List[WebSocket] = []
+
+@app.websocket("/update")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    active_websockets.append(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()  # Receive data from the WebSocket
+            print("Received data:", data)
+    except WebSocketDisconnect:
+        active_websockets.remove(websocket)
+    
 
 
+# Function to send MQTT payload to the WebSocket
+async def send_to_websockets(payload: str):
+    print(f"Sending to websocket : {payload}")
+    for websocket in active_websockets:
+        try:
+            await websocket.send_text(payload)  # Send payload to the WebSocket
+        except Exception as e:
+            print("WebSocket error:", e)
+        
