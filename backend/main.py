@@ -4,6 +4,7 @@ from typing import Union, List
 
 # Fast API Imports
 from fastapi import Depends, FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 # DB Imports
 from sqlalchemy.orm import Session
@@ -16,7 +17,27 @@ from fastapi_mqtt import FastMQTT, MQTTConfig
 # Websocket Imports
 from fastapi import WebSocket, WebSocketDisconnect
 
+# ------------ Configuration ------------
+# ---------------------------------------
+
 app = FastAPI()
+
+# CORS
+origins = [
+    "http://attendance.eis.du.ac.bd",
+    "https://attendance.eis.du.ac.bd",
+    "http://localhost",
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # DB Migration
 models.Base.metadata.create_all(bind=engine)
@@ -41,6 +62,8 @@ mqtt = FastMQTT(config=mqtt_config)
 
 mqtt.init_app(app)
 
+# ------------ API ------------
+# -----------------------------
 
 @app.get("/ping")
 def ping():
@@ -55,7 +78,7 @@ def get_courses():
 @app.get("/attendance")
 def get_courses():
     db = SessionLocal()
-    attendances = courses = db.query(models.Attendance).all()
+    attendances = db.query(models.Attendance).all()
     return attendances
 
 async def new_attendance(deviceId: int, cardId: str):
@@ -95,6 +118,7 @@ async def new_attendance(deviceId: int, cardId: str):
     else:
         print(f"Attendance already taken | card id: {cardId} from device : {deviceId} | student: {student.name} course: {course.name}")
         await send_to_websockets(f"Attendance already received | {student.name}")
+
 # ------------ MQTT ------------
 # ------------------------------
 

@@ -3,17 +3,21 @@ import { useState } from "react";
 import { useEffect } from "react";
 import "./App.css";
 
-// URL imports
+// API & URL imports
 import { WSS_URL } from "./constants";
+import api from "./api";
 
 // Toast imports
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+// Antd imports
+import { Table } from "antd";
+import Column from "antd/es/table/Column";
+
 function App() {
   // Websocket
   let ws = null;
-  let [updateMessage, setUpdateMessage] = useState("");
 
   // Toast
   const notify = (message) =>
@@ -28,6 +32,21 @@ function App() {
       theme: "dark",
     });
 
+  // Table Data
+  const [attendanceData, setAttendanceData] = useState([]);
+
+  const fetchAttendanceData = () => {
+    api
+      .get("/attendance")
+      .then((res) => {
+        console.log(res.data);
+        setAttendanceData(res.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
   // Startup
   useEffect(() => {
     console.log("Startup");
@@ -36,24 +55,39 @@ function App() {
     ws = new WebSocket(`${WSS_URL}/update`);
     ws.onopen = () => {
       console.log("connected");
-      setUpdateMessage("connected");
     };
     ws.onmessage = (evt) => {
       // listen to data sent from the websocket server
       console.log(evt.data);
-      setUpdateMessage(evt.data);
       notify(evt.data);
+
+      /* Fetch attendance data */
+      fetchAttendanceData();
     };
     ws.onclose = () => {
       console.log("disconnected");
-      setUpdateMessage("disconnected");
       // automatically try to reconnect on connection loss
     };
+
+    /* Fetch attendance data */
+    fetchAttendanceData();
   }, []);
 
   return (
-    <>
-      <h1>{updateMessage}</h1>
+    <div>
+      <h1>Attendance</h1>
+      {/* Table */}
+      <Table
+        dataSource={attendanceData}
+        rowKey="id"
+        style={{ overflowX: "auto" }}
+      >
+        <Column title="Student" dataIndex="student_id"></Column>
+        <Column title="Course" dataIndex="course_id"></Column>
+        <Column title="Date" dataIndex="date"></Column>
+      </Table>
+
+      {/* Toast */}
       <ToastContainer
         position="top-center"
         autoClose={5000}
@@ -66,7 +100,7 @@ function App() {
         pauseOnHover={false}
         theme="dark"
       />
-    </>
+    </div>
   );
 }
 
