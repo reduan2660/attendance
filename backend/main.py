@@ -1,4 +1,5 @@
 import os
+import datetime
 
 # Fast API Imports
 from typing import Union
@@ -51,11 +52,43 @@ def get_courses():
 @app.get("/attendance")
 def get_courses():
     db = SessionLocal()
-    courses = db.query(models.Attendance).all()
-    return courses
+    attendances = courses = db.query(models.Attendance).all()
+    return attendances
 
-async def new_attendance(deviceId, cardId):
-    print(f"Attendance for {cardId} from device {deviceId}")
+async def new_attendance(deviceId: int, cardId: str):
+    '''
+    1. Get the course from the device id
+    2. Get the student from the card id
+    3. Check if attendance exists for the student and course and date
+    4. If attendance does not exist, create a new attendance
+    '''
+
+    db = SessionLocal()
+    
+    # 1. Get the course from the device id
+    course = db.query(models.Course).filter(models.Course.course_devices.any(device_id=deviceId)).first()
+
+    # 2. Get the student from the card id
+    student = db.query(models.Student).filter(models.Student.student_card_id == cardId).first()
+
+
+
+    # 3. Check if attendance exists for the student and course and date
+
+    # 3.1 Convert System Date to YYYY-MM-DD format
+    current_date = datetime.datetime.now()
+    formatted_date = current_date.strftime('%Y-%m-%d')
+
+    attendance = db.query(models.Attendance).filter(models.Attendance.course_id == course.id).filter(models.Attendance.student_id == student.id).filter(models.Attendance.date == formatted_date).first()
+    if(attendance == None) : 
+        attendance = models.Attendance(course_id=course.id, student_id=student.id, date=formatted_date)
+        db.add(attendance)
+        db.commit()
+        db.refresh(attendance)
+        print(f"Attendance saved | card id: {cardId} from device : {deviceId} | student: {student.name} course: {course.name}")
+    else:
+        print(f"Attendance already taken | card id: {cardId} from device : {deviceId} | student: {student.name} course: {course.name}")
+    
 
 # ------------ MQTT ------------
 # ------------------------------
