@@ -69,7 +69,7 @@ mqtt.init_app(app)
 def ping():
     return {"Ping": "pong"}
 
-@app.get("/courses")
+@app.get("/api/courses")
 def get_courses():
     db = SessionLocal()
     courses = db.query(models.Course).all()
