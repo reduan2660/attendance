@@ -22,3 +22,9 @@ def get_courses():
     db = SessionLocal()
     courses = db.query(models.Course).all()
     return courses
+
+@app.get("/attendance")
+def get_courses():
+    db = SessionLocal()
+    courses = db.query(models.Attendance).all()
+    return courses
