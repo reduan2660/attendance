@@ -7,7 +7,7 @@ from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 # DB Imports
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from . import models
 from .database import SessionLocal, engine
 
@@ -78,7 +78,14 @@ def get_courses():
 @app.get("/api/attendance")
 def get_courses():
     db = SessionLocal()
-    attendances = db.query(models.Attendance).all()
+    attendances = (
+        db.query(models.Attendance)
+        .options(
+            joinedload(models.Attendance.student),  # Eager load student data
+            joinedload(models.Attendance.course),   # Eager load course data
+        )
+        .all()
+    )
     return attendances
 
 async def new_attendance(deviceId: int, cardId: str):
