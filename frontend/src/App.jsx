@@ -94,6 +94,7 @@ function App() {
       )}
         />
         <Column title="Date" dataIndex="date"></Column>
+        <Column title="Time" dataIndex="time"></Column>
       </Table>
 
       {/* Toast */}
