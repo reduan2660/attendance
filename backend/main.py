@@ -1,5 +1,6 @@
 import os
 import datetime
+import pytz
 from typing import Union, List
 
 # Fast API Imports
@@ -109,14 +110,18 @@ async def new_attendance(deviceId: int, cardId: str):
     # 3. Check if attendance exists for the student and course and date
 
     # 3.1 Convert System Date to YYYY-MM-DD format
-    current_date = datetime.datetime.now()
-    formatted_date = current_date.strftime('%Y-%m-%d')
+    timezone = pytz.timezone('Asia/Dhaka')
+    current_time = datetime.datetime.now(timezone)
+
+    
+    formatted_date = current_time.strftime('%Y-%m-%d')
+    formatted_time = current_time.strftime('%I:%M:%S %p')  # 12-hour format with AM/PM
 
     attendance = db.query(models.Attendance).filter(models.Attendance.course_id == course.id).filter(models.Attendance.student_id == student.id).filter(models.Attendance.date == formatted_date).first()
 
     # 4. If attendance does not exist, create a new attendance
     if(attendance == None) : 
-        attendance = models.Attendance(course_id=course.id, student_id=student.id, date=formatted_date)
+        attendance = models.Attendance(course_id=course.id, student_id=student.id, date=formatted_date, time=formatted_time)
         db.add(attendance)
         db.commit()
         db.refresh(attendance)

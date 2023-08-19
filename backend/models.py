@@ -46,6 +46,7 @@ class Attendance(Base):
     student_id      = Column(Integer, ForeignKey("students.id"))
     is_present      = Column(Boolean, default=True)
     date            = Column(String)
+    time            = Column(String)
 
     course          = relationship("Course", back_populates="attendance")
     student         = relationship("Student", back_populates="attendance")
