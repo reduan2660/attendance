@@ -80,10 +80,19 @@ function App() {
       <Table
         dataSource={attendanceData}
         rowKey="id"
+        pagination={false}
         style={{ overflowX: "auto" }}
       >
-        <Column title="Student" dataIndex="student_id"></Column>
-        <Column title="Course" dataIndex="course_id"></Column>
+        <Column title="Student" dataIndex="student_id" 
+        render={(student, record) => (
+            <p>{record.student.name}</p>
+        )}
+        />
+        <Column title="Course" dataIndex="course_id"
+        render={(student, record) => (
+          <p>{record.course.name}</p>
+      )}
+        />
         <Column title="Date" dataIndex="date"></Column>
       </Table>
 
