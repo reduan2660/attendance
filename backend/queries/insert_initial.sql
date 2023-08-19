@@ -10,7 +10,12 @@ SELECT * FROM courses;
 -- Students
 INSERT INTO students (id, student_card_id, registration_no, roll, name, is_active) 
 			VALUES  (1, '04074b73606180', '2019-617-842', 59, 'Alve Reduan', true);
+
+INSERT INTO students (id, student_card_id, registration_no, roll, name, is_active)
+			VALUES  (2, '0470157A606180', '2019-617-XXX', 100, 'Test user', true);
+
 SELECT * FROM students;
+
 
 -- Devices
 INSERT INTO devices (id, is_active) VALUES (1, true);
