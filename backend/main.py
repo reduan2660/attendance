@@ -140,10 +140,15 @@ async def new_attendance(deviceId: int, cardId: str):
     # 1. Get the course from the device id
     course = db.query(models.Course).filter(models.Course.course_devices.any(device_id=deviceId)).first()
 
+    if(course == None):
+        print(f"Course not found for device id: {deviceId}")
+        return
+
     # 2. Get the student from the card id
     student = db.query(models.Student).filter(models.Student.student_card_id == cardId).first()
-
-
+    if(student == None):
+        print(f"Student not found for card id: {cardId}")
+        return
 
     # 3. Check if attendance exists for the student and course and date
 
