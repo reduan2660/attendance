@@ -82,9 +82,10 @@ function App() {
 
   return (
     <div>
-      <h1>
-        <Link to="/link">Attendance</Link>
-      </h1>
+      <Link to="/link">
+        <h1 style={{color: "white"}}>Attendance</h1>
+      </Link>
+
       {/* Table */}
       <Table
         dataSource={attendanceData}
@@ -105,6 +106,25 @@ function App() {
         <Column title="Date" dataIndex="date"></Column>
         <Column title="Time" dataIndex="time"></Column>
       </Table>
+
+      <a
+        href="https://github.com/reduan2660/attendance"
+        target="_blank"
+        style={{
+          position: "fixed",
+          bottom: "10px",
+          right: "10px",
+          margin: "10px",
+
+          color: "white",
+          padding: "10px 10px",
+          borderRadius: "5px",
+          textDecoration: "none",
+          border: "1px solid #aaaaaa",
+        }}
+      >
+        Contribute
+      </a>
 
       {/* Toast */}
       <ToastContainer
