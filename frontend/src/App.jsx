@@ -14,8 +14,12 @@ import "react-toastify/dist/ReactToastify.css";
 // Antd imports
 import { Table } from "antd";
 import Column from "antd/es/table/Column";
+import { Button, Modal } from "antd";
 
 function App() {
+  /// Modal
+  const [isNewDeviceModalOpen, setIsNewDeviceModalOpen] = useState(false);
+
   // Websocket
   let ws = null;
 
@@ -83,19 +87,33 @@ function App() {
         pagination={false}
         style={{ overflowX: "auto" }}
       >
-        <Column title="Student" dataIndex="student_id" 
-        render={(student, record) => (
-            <p>{record.student.name}</p>
-        )}
+        <Column
+          title="Student"
+          dataIndex="student_id"
+          render={(student, record) => <p>{record.student.name}</p>}
         />
-        <Column title="Course" dataIndex="course_id"
-        render={(student, record) => (
-          <p>{record.course.name}</p>
-      )}
+        <Column
+          title="Course"
+          dataIndex="course_id"
+          render={(student, record) => <p>{record.course.name}</p>}
         />
         <Column title="Date" dataIndex="date"></Column>
         <Column title="Time" dataIndex="time"></Column>
       </Table>
+
+      <Button className="mt-10">Link a device</Button>
+
+      {/* Modal */}
+      <Modal
+        title="Link a device"
+        open={isNewDeviceModalOpen}
+        onOk={() => setAttendanceData(false)}
+        onCancel={() => setAttendanceData(false)}
+      >
+        <p>Some contents...</p>
+        <p>Some contents...</p>
+        <p>Some contents...</p>
+      </Modal>
 
       {/* Toast */}
       <ToastContainer

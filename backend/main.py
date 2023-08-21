@@ -6,6 +6,7 @@ from typing import Union, List
 # Fast API Imports
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 # DB Imports
 from sqlalchemy.orm import Session, joinedload
@@ -79,8 +80,12 @@ def get_courses():
 @app.get("/api/attendance")
 def get_courses():
     db = SessionLocal()
+    today = datetime.datetime.now().date()  # Get today's date
+    print(today.strftime("%Y-%m-%d"))
     attendances = (
         db.query(models.Attendance)
+        .filter(models.Attendance.date == today.strftime("%Y-%m-%d"))
+        .order_by(models.Attendance.id.desc())
         .options(
             joinedload(models.Attendance.student),  # Eager load student data
             joinedload(models.Attendance.course),   # Eager load course data
@@ -88,6 +93,39 @@ def get_courses():
         .all()
     )
     return attendances
+
+class DeviceCourse(BaseModel):
+    course: int
+    device: int
+    password: str
+
+AUTH_PASSWORD = os.getenv("AUTH_PASSWORD")
+
+@app.post("/api/link")
+def link_device(deviceCourse: DeviceCourse):
+    device_id   = deviceCourse.device
+    course_id   = deviceCourse.course
+    password    = deviceCourse.password
+
+    if password != AUTH_PASSWORD:
+        # return 401
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    else:
+    # check if there is an entry for course_devices, if there is update the course_id for that device_id of course_devices table
+    # if there is no entry, create a new entry
+        db = SessionLocal()
+        course_device = db.query(models.CourseDevice).filter(models.CourseDevice.device_id == device_id).first()
+        if(course_device == None):
+            course_device = models.CourseDevice(course_id=course_id, device_id=device_id)
+            db.add(course_device)
+            db.commit()
+            db.refresh(course_device)
+            return course_device
+        else:
+            course_device.course_id = course_id
+            db.commit()
+            db.refresh(course_device)
+            return course_device
 
 async def new_attendance(deviceId: int, cardId: str):
     '''
