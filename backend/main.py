@@ -169,7 +169,7 @@ async def new_attendance(deviceId: int, cardId: str):
         db.commit()
         db.refresh(attendance)
         print(f"Attendance saved | card id: {cardId} from device : {deviceId} | student: {student.name} course: {course.name}")
-        await send_to_websockets(f"Attendance received | {student.name}")
+        await send_to_websockets(f"{student.name}")
     else:
         print(f"Attendance already taken | card id: {cardId} from device : {deviceId} | student: {student.name} course: {course.name}")
         # await send_to_websockets(f"Attendance already received | {student.name}")
