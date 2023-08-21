@@ -68,11 +68,12 @@ function Link() {
             defaultValue="1"
             style={{ width: 300 }}
             onChange={(value) => setSelectedDevice(value)}
-            options={[{ value: "1", label: "1", selected: true }]}
+            options={[{ value: "1", label: "Pilot", selected: true }]}
           />
         </Space>
 
         <Input
+        type="password"
           size="large"
           name="course"
           placeholder="Password"
