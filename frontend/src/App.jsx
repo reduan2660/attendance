@@ -16,6 +16,9 @@ import { Table } from "antd";
 import Column from "antd/es/table/Column";
 import { Button, Modal } from "antd";
 
+// React Router
+import { Link } from "react-router-dom";
+
 function App() {
   /// Modal
   const [isNewDeviceModalOpen, setIsNewDeviceModalOpen] = useState(false);
@@ -79,7 +82,9 @@ function App() {
 
   return (
     <div>
-      <h1>Attendance</h1>
+      <h1>
+        <Link to="/link">Attendance</Link>
+      </h1>
       {/* Table */}
       <Table
         dataSource={attendanceData}
@@ -100,20 +105,6 @@ function App() {
         <Column title="Date" dataIndex="date"></Column>
         <Column title="Time" dataIndex="time"></Column>
       </Table>
-
-      <Button className="mt-10">Link a device</Button>
-
-      {/* Modal */}
-      <Modal
-        title="Link a device"
-        open={isNewDeviceModalOpen}
-        onOk={() => setAttendanceData(false)}
-        onCancel={() => setAttendanceData(false)}
-      >
-        <p>Some contents...</p>
-        <p>Some contents...</p>
-        <p>Some contents...</p>
-      </Modal>
 
       {/* Toast */}
       <ToastContainer
