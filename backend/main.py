@@ -73,26 +73,26 @@ def ping():
 
 @app.get("/api/courses")
 def get_courses():
-    db = SessionLocal()
-    courses = db.query(models.Course).all()
-    return courses
+    with SessionLocal() as db:
+        courses = db.query(models.Course).all()
+        return courses
 
 @app.get("/api/attendance")
 def get_courses():
-    db = SessionLocal()
-    today = datetime.datetime.now().date()  # Get today's date
-    print(today.strftime("%Y-%m-%d"))
-    attendances = (
-        db.query(models.Attendance)
-        .filter(models.Attendance.date == today.strftime("%Y-%m-%d"))
-        .order_by(models.Attendance.id.desc())
-        .options(
-            joinedload(models.Attendance.student),  # Eager load student data
-            joinedload(models.Attendance.course),   # Eager load course data
+    with SessionLocal() as db:
+        today = datetime.datetime.now().date()  # Get today's date
+        print(today.strftime("%Y-%m-%d"))
+        attendances = (
+            db.query(models.Attendance)
+            .filter(models.Attendance.date == today.strftime("%Y-%m-%d"))
+            .order_by(models.Attendance.id.desc())
+            .options(
+                joinedload(models.Attendance.student),  # Eager load student data
+                joinedload(models.Attendance.course),   # Eager load course data
+            )
+            .all()
         )
-        .all()
-    )
-    return attendances
+        return attendances
 
 class DeviceCourse(BaseModel):
     course: int
@@ -113,19 +113,19 @@ def link_device(deviceCourse: DeviceCourse):
     else:
     # check if there is an entry for course_devices, if there is update the course_id for that device_id of course_devices table
     # if there is no entry, create a new entry
-        db = SessionLocal()
-        course_device = db.query(models.CourseDevice).filter(models.CourseDevice.device_id == device_id).first()
-        if(course_device == None):
-            course_device = models.CourseDevice(course_id=course_id, device_id=device_id)
-            db.add(course_device)
-            db.commit()
-            db.refresh(course_device)
-            return course_device
-        else:
-            course_device.course_id = course_id
-            db.commit()
-            db.refresh(course_device)
-            return course_device
+        with SessionLocal() as db:
+            course_device = db.query(models.CourseDevice).filter(models.CourseDevice.device_id == device_id).first()
+            if(course_device == None):
+                course_device = models.CourseDevice(course_id=course_id, device_id=device_id)
+                db.add(course_device)
+                db.commit()
+                db.refresh(course_device)
+                return course_device
+            else:
+                course_device.course_id = course_id
+                db.commit()
+                db.refresh(course_device)
+                return course_device
 
 async def new_attendance(deviceId: int, cardId: str):
     '''
@@ -135,44 +135,44 @@ async def new_attendance(deviceId: int, cardId: str):
     4. If attendance does not exist, create a new attendance
     '''
 
-    db = SessionLocal()
+    with SessionLocal() as db:
     
-    # 1. Get the course from the device id
-    course = db.query(models.Course).filter(models.Course.course_devices.any(device_id=deviceId)).first()
+        # 1. Get the course from the device id
+        course = db.query(models.Course).filter(models.Course.course_devices.any(device_id=deviceId)).first()
 
-    if(course == None):
-        print(f"Course not found for device id: {deviceId}")
-        return
+        if(course == None):
+            print(f"Course not found for device id: {deviceId}")
+            return
 
-    # 2. Get the student from the card id
-    student = db.query(models.Student).filter(models.Student.student_card_id == cardId).first()
-    if(student == None):
-        print(f"Student not found for card id: {cardId}")
-        return
+        # 2. Get the student from the card id
+        student = db.query(models.Student).filter(models.Student.student_card_id == cardId).first()
+        if(student == None):
+            print(f"Student not found for card id: {cardId}")
+            return
 
-    # 3. Check if attendance exists for the student and course and date
+        # 3. Check if attendance exists for the student and course and date
 
-    # 3.1 Convert System Date to YYYY-MM-DD format
-    timezone = pytz.timezone('Asia/Dhaka')
-    current_time = datetime.datetime.now(timezone)
+        # 3.1 Convert System Date to YYYY-MM-DD format
+        timezone = pytz.timezone('Asia/Dhaka')
+        current_time = datetime.datetime.now(timezone)
 
-    
-    formatted_date = current_time.strftime('%Y-%m-%d')
-    formatted_time = current_time.strftime('%I:%M:%S %p')  # 12-hour format with AM/PM
+        
+        formatted_date = current_time.strftime('%Y-%m-%d')
+        formatted_time = current_time.strftime('%I:%M:%S %p')  # 12-hour format with AM/PM
 
-    attendance = db.query(models.Attendance).filter(models.Attendance.course_id == course.id).filter(models.Attendance.student_id == student.id).filter(models.Attendance.date == formatted_date).first()
+        attendance = db.query(models.Attendance).filter(models.Attendance.course_id == course.id).filter(models.Attendance.student_id == student.id).filter(models.Attendance.date == formatted_date).first()
 
-    # 4. If attendance does not exist, create a new attendance
-    if(attendance == None) : 
-        attendance = models.Attendance(course_id=course.id, student_id=student.id, date=formatted_date, time=formatted_time)
-        db.add(attendance)
-        db.commit()
-        db.refresh(attendance)
-        print(f"Attendance saved | card id: {cardId} from device : {deviceId} | student: {student.name} course: {course.name}")
-        await send_to_websockets(f"{student.name}")
-    else:
-        print(f"Attendance already taken | card id: {cardId} from device : {deviceId} | student: {student.name} course: {course.name}")
-        # await send_to_websockets(f"Attendance already received | {student.name}")
+        # 4. If attendance does not exist, create a new attendance
+        if(attendance == None) : 
+            attendance = models.Attendance(course_id=course.id, student_id=student.id, date=formatted_date, time=formatted_time)
+            db.add(attendance)
+            db.commit()
+            db.refresh(attendance)
+            print(f"Attendance saved | card id: {cardId} from device : {deviceId} | student: {student.name} course: {course.name}")
+            await send_to_websockets(f"Attendance received | {student.name}")
+        else:
+            print(f"Attendance already taken | card id: {cardId} from device : {deviceId} | student: {student.name} course: {course.name}")
+            # await send_to_websockets(f"Attendance already received | {student.name}")
 
 # ------------ MQTT ------------
 # ------------------------------
