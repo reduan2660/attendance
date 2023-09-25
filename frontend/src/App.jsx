@@ -83,7 +83,7 @@ function App() {
   return (
     <div>
       <Link to="/link">
-        <h1 style={{color: "white"}}>Attendance</h1>
+        <h1 style={{color: "#6495ED"}}>Attendance</h1>
       </Link>
 
       {/* Table */}
@@ -137,7 +137,6 @@ function App() {
         pauseOnFocusLoss={false}
         draggable
         pauseOnHover={false}
-        theme="dark"
       />
     </div>
   );
