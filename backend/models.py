@@ -56,21 +56,33 @@ class Course(Base):
     teacher_id      = Column(Integer, ForeignKey("teachers.official_id"))
 
     teachers       = relationship("Teacher", back_populates="courses")
-    attendance     = relationship("Attendance", back_populates="course")
-    course_devices = relationship("CourseDevice", back_populates="course")
+    course_classes = relationship("CourseClass", back_populates="course")
+
+class CourseClass(Base):
+    __tablename__ = "course_classes"
+
+    id              = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    course_id       = Column(UUID(as_uuid=True), ForeignKey("courses.id"))
+    class_time      = Column(DateTime, default=func.now())
+
+    course          = relationship("Course", back_populates="course_classes")
+    attendance      = relationship("Attendance", back_populates="course_class")
+    course_devices  = relationship("CourseDevice", back_populates="course_class")
+    
 
 class Attendance(Base):
     __tablename__ = "attendance"
 
     id              = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    course_id       = Column(UUID(as_uuid=True), ForeignKey("courses.id"))
+    course_class_id = Column(UUID(as_uuid=True), ForeignKey("course_classes.id"))
     student_id      = Column(String, ForeignKey("students.registration_no"))
     is_present      = Column(Boolean, default=False)
     created_at      = Column(DateTime, default=func.now())
     updated_at      = Column(DateTime, default=func.now(), onupdate=func.now())
 
-    course          = relationship("Course", back_populates="attendance")
+    course_class    = relationship("CourseClass", back_populates="attendance")
     student         = relationship("Student", back_populates="attendance")
+
 
 
 class Device(Base):
@@ -82,12 +94,14 @@ class Device(Base):
 
     course_devices = relationship("CourseDevice", back_populates="device")
 
+
 class CourseDevice(Base):
     __tablename__ = "course_devices"
 
     id              = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    course_id       = Column(UUID(as_uuid=True), ForeignKey("courses.id"))
+    course_class_id = Column(UUID(as_uuid=True), ForeignKey("course_classes.id"))
     device_id       = Column(Integer, ForeignKey("devices.id"))
 
-    course          = relationship("Course", back_populates="course_devices")
+    course_class    = relationship("CourseClass", back_populates="course_devices")
     device          = relationship("Device", back_populates="course_devices")
+
