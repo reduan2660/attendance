@@ -56,7 +56,7 @@ class Course(Base):
     teacher_id      = Column(Integer, ForeignKey("teachers.official_id"))
 
     teachers       = relationship("Teacher", back_populates="courses")
-    attendance    = relationship("Attendance", back_populates="course")
+    attendance     = relationship("Attendance", back_populates="course")
     course_devices = relationship("CourseDevice", back_populates="course")
 
 class Attendance(Base):
