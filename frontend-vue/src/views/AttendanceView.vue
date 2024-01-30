@@ -46,6 +46,28 @@ const fetchattendances = () => {
     });
 };
 
+const updateAttendance = (attendance_id, is_present) => {
+  api
+    .put(
+      `/attendance?attendance_id=${attendance_id}&is_present=${is_present}`,
+      {},
+      {
+        headers: {
+          token: localStorage.getItem("token"),
+        },
+      }
+    )
+    .then((response) => {
+      console.log(response.data);
+      toast.success("Attendance updated");
+      fetchattendances();
+    })
+    .catch((error) => {
+      console.log(error);
+      toast.error("Error updating attendance");
+    });
+};
+
 onMounted(() => {
   if (!isLoggedIn) {
     router.push("/login");
@@ -97,10 +119,18 @@ onMounted(() => {
           <Column field="is_present" header="Status">
             <template #body="slotProps">
               <div v-if="slotProps.data.is_present">
-                <Tag class="p-tag-success">Present</Tag>
+                <Tag
+                  class="p-tag-success cursor-pointer"
+                  @click="() => updateAttendance(slotProps.data.id, false)"
+                  >Present</Tag
+                >
               </div>
               <div v-else>
-                <Tag class="p-tag-danger">Absent</Tag>
+                <Tag
+                  @click="() => updateAttendance(slotProps.data.id, true)"
+                  class="p-tag-danger cursor-pointer"
+                  >Absent</Tag
+                >
               </div>
             </template>
           </Column>

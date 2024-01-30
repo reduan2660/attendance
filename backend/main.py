@@ -319,8 +319,28 @@ def get_courses(course_class_id: str, token: Annotated[Union[str, None], Header(
         )
         return attendances
 
-    
+@app.put("/api/attendance")
+def update_attendance(attendance_id:str, is_present: bool, token: Annotated[Union[str, None], Header()] = None):
+    with SessionLocal() as db:
 
+        decoded_token = decode_jwt_token(token)
+        if(decoded_token == None):
+            raise HTTPException(status_code=401, detail="Unauthorized | Token Decode Failed")
+        
+        user = db.query(User).filter(User.id == decoded_token["id"]).first()
+        if(user == None):
+            raise HTTPException(status_code=401, detail="Unauthorized | User Not Found")
+        
+        if(user.role != "teacher"):
+            raise HTTPException(status_code=401, detail="Unauthorized | Not a Teacher")
+        
+        attendance = db.query(Attendance).filter(Attendance.id == attendance_id).first()
+        if(attendance == None):
+            raise HTTPException(status_code=401, detail="Unauthorized | Attendance Not Found")
+        
+        attendance.is_present = is_present
+        db.commit()
+        return attendance
 
 async def new_attendance(deviceId: int, cardId: str):
     '''
