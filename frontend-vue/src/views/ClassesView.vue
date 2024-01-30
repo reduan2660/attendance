@@ -6,6 +6,10 @@ import { useRouter, useRoute } from "vue-router";
 import Header from "../components/Header.vue";
 import api from "../api";
 
+// Toast
+import { toast } from "vue3-toastify";
+import "vue3-toastify/dist/index.css";
+
 const { isLoggedIn } = useUserStore();
 const router = useRouter();
 const route = useRoute();
@@ -93,42 +97,44 @@ onMounted(() => {
       </div>
 
       <!-- Loop thrugh all classes -->
-      <div v-for="classs in classes" :key="classs.id">
-        <div
-          class="max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow"
-        >
-          <a href="#">
-            <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900">
-              {{ convertPythonTimestampToUTC6String(classs.class_time) }}
-            </h5>
-          </a>
-
-          <p>
-            Attendance -
-            {{ parseFloat(classs.attendance_percentage).toFixed(2) }} %
-          </p>
-
-          <RouterLink
-            :to="`/attendance?class_id=${classs.id}&course_name=${course_name}`"
-            class="inline-flex items-center px-3 py-2 my-4 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300"
+      <div class="flex flex-row gap-20 flex-wrap mx-20">
+        <div v-for="classs in classes" :key="classs.id">
+          <div
+            class="max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow"
           >
-            Take attendance
-            <svg
-              class="rtl:rotate-180 w-3.5 h-3.5 ms-2"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 14 10"
+            <a href="#">
+              <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900">
+                {{ convertPythonTimestampToUTC6String(classs.class_time) }}
+              </h5>
+            </a>
+
+            <p>
+              Attendance -
+              {{ parseFloat(classs.attendance_percentage).toFixed(2) }} %
+            </p>
+
+            <RouterLink
+              :to="`/attendance?class_id=${classs.id}&course_name=${course_name}`"
+              class="inline-flex items-center px-3 py-2 my-4 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300"
             >
-              <path
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M1 5h12m0 0L9 1m4 4L9 9"
-              />
-            </svg>
-          </RouterLink>
+              Take attendance
+              <svg
+                class="rtl:rotate-180 w-3.5 h-3.5 ms-2"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 14 10"
+              >
+                <path
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M1 5h12m0 0L9 1m4 4L9 9"
+                />
+              </svg>
+            </RouterLink>
+          </div>
         </div>
       </div>
     </div>

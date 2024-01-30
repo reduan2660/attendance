@@ -68,6 +68,24 @@ const updateAttendance = (attendance_id, is_present) => {
     });
 };
 
+const linkDevice = () => {
+  api
+    .get(`/linkDevice?course_class_id=${course_class_id}&device_id=1`, {
+      headers: {
+        token: localStorage.getItem("token"),
+      },
+    })
+    .then((response) => {
+      console.log(response.data);
+      toast.success("Device linked");
+      fetchattendances();
+    })
+    .catch((error) => {
+      console.log(error);
+      toast.error("Error linking device");
+    });
+};
+
 onMounted(() => {
   if (!isLoggedIn) {
     router.push("/login");
@@ -101,7 +119,16 @@ onMounted(() => {
     <Header />
 
     <div class="flex flex-col items-center my-6">
-      <div class="font-bold text-xl py-10">{{ course_name }}</div>
+      <div class="w-1/2 flex flex-row justify-between items-center">
+        <div class="font-bold text-xl py-10">{{ course_name }}</div>
+
+        <div
+          @click="linkDevice"
+          class="cursor-pointer py-1 px-2 shadow rounded border-2 border-gray-400"
+        >
+          Link Device
+        </div>
+      </div>
 
       <div class="card">
         <DataTable

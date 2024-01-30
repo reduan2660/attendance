@@ -188,16 +188,16 @@ def get_students(batch: int,token: Annotated[Union[str, None], Header()] = None)
         try:
             decoded_token = decode_jwt_token(token)
             if(decoded_token == None):
-                raise HTTPException(status_code=401, detail="Unauthorized | Token Decode Failed")
+                raise HTTPException(status_code=401, detail="Token Decode Failed")
 
             user = db.query(User).filter(User.id == decoded_token["id"]).first()
             if(user == None):
-                raise HTTPException(status_code=401, detail="Unauthorized | User Not Found")
+                raise HTTPException(status_code=401, detail="User Not Found")
             
             if(user.role == "teacher"):
                 teacher = db.query(Teacher).filter(Teacher.user_id == user.id).first()
                 if(teacher == None):
-                    raise HTTPException(status_code=401, detail="Unauthorized | Teacher Not Found")
+                    raise HTTPException(status_code=401, detail="Teacher Not Found")
                 
                 courses = db.query(Course).filter(Course.teacher_id == teacher.official_id).all()
                 course_ids = [course.id for course in courses]
@@ -207,14 +207,14 @@ def get_students(batch: int,token: Annotated[Union[str, None], Header()] = None)
             elif(user.role == "student"):
                 student = db.query(Student).filter(Student.user_id == user.id).first()
                 if(student == None):
-                    raise HTTPException(status_code=401, detail="Unauthorized | Student Not Found")
+                    raise HTTPException(status_code=401, detail="Student Not Found")
                 
                 students = db.query(Student).filter(Student.batch == student.batch).all()
                 return students
         
         except Exception as e:
             print(e)
-            raise HTTPException(status_code=401, detail="Unauthorized | Exception")
+            raise HTTPException(status_code=401, detail="Exception")
 
 
 class NewClass(BaseModel):
@@ -226,20 +226,20 @@ def new_class(newClass: NewClass, token: Annotated[Union[str, None], Header()] =
 
         decoded_token = decode_jwt_token(token)
         if(decoded_token == None):
-            raise HTTPException(status_code=401, detail="Unauthorized | Token Decode Failed")
+            raise HTTPException(status_code=401, detail="Token Decode Failed")
 
         user = db.query(User).filter(User.id == decoded_token["id"]).first()
         if(user == None):
-            raise HTTPException(status_code=401, detail="Unauthorized | User Not Found")
+            raise HTTPException(status_code=401, detail="User Not Found")
         
         if(user.role == "teacher"):
             teacher = db.query(Teacher).filter(Teacher.user_id == user.id).first()
             if(teacher == None):
-                raise HTTPException(status_code=401, detail="Unauthorized | Teacher Not Found")
+                raise HTTPException(status_code=401, detail="Teacher Not Found")
             
             course = db.query(Course).filter(Course.id == newClass.course).first()
             if(course == None):
-                raise HTTPException(status_code=401, detail="Unauthorized | Course Not Found")
+                raise HTTPException(status_code=401, detail="Course Not Found")
             
             # check if a class is already running for this course for this batch and date
             # get today's date at 00:00:00
@@ -247,7 +247,7 @@ def new_class(newClass: NewClass, token: Annotated[Union[str, None], Header()] =
             
             course_class = db.query(CourseClass).filter(CourseClass.course_id == newClass.course).filter(CourseClass.class_time >= today).first()
             if(course_class != None):
-                raise HTTPException(status_code=400, detail="Unauthorized | Class Already Running") # one class per course per day
+                raise HTTPException(status_code=400, detail="Class Already Running") # one class per course per day
             
             course_class = CourseClass(
                 course_id = newClass.course,
@@ -260,7 +260,7 @@ def new_class(newClass: NewClass, token: Annotated[Union[str, None], Header()] =
             # Link the course_class with the device
             # device = db.query(Device).filter(Device.id == newClass.device).first()
             # if(device == None):
-            #     raise HTTPException(status_code=401, detail="Unauthorized | Device Not Found")
+            #     raise HTTPException(status_code=401, detail="Device Not Found")
             
             # course_device = CourseDevice(
             #         course_class_id = course_class.id,
@@ -284,7 +284,7 @@ def new_class(newClass: NewClass, token: Annotated[Union[str, None], Header()] =
             return course_class
 
         else:
-            raise HTTPException(status_code=401, detail="Unauthorized | Not a Teacher")        
+            raise HTTPException(status_code=401, detail="Not a Teacher")        
         
 
 @app.get("/api/devices")
@@ -293,40 +293,43 @@ def get_devices(token: Annotated[Union[str, None], Header()] = None):
 
         decoded_token = decode_jwt_token(token)
         if(decoded_token == None):
-            raise HTTPException(status_code=401, detail="Unauthorized | Token Decode Failed")
+            raise HTTPException(status_code=401, detail="Token Decode Failed")
         
         user = db.query(User).filter(User.id == decoded_token["id"]).first()
         if(user == None):
-            raise HTTPException(status_code=401, detail="Unauthorized | User Not Found")
+            raise HTTPException(status_code=401, detail="User Not Found")
         
         if(user.role != "teacher"):
-            raise HTTPException(status_code=401, detail="Unauthorized | Not a Teacher")
+            raise HTTPException(status_code=401, detail="Not a Teacher")
         
         devices = db.query(Device).all()
         return devices
-    
+
 @app.get("/api/linkDevice")
 def link_device(device_id: int, course_class_id: str, token: Annotated[Union[str, None], Header()] = None):
     with SessionLocal() as db:
 
         decoded_token = decode_jwt_token(token)
         if(decoded_token == None):
-            raise HTTPException(status_code=401, detail="Unauthorized | Token Decode Failed")
+            raise HTTPException(status_code=401, detail="Token Decode Failed")
         
         user = db.query(User).filter(User.id == decoded_token["id"]).first()
         if(user == None):
-            raise HTTPException(status_code=401, detail="Unauthorized | User Not Found")
+            raise HTTPException(status_code=401, detail="User Not Found")
         
         if(user.role != "teacher"):
-            raise HTTPException(status_code=401, detail="Unauthorized | Not a Teacher")
+            raise HTTPException(status_code=401, detail="Not a Teacher")
         
         device = db.query(Device).filter(Device.id == device_id).first()
         if(device == None):
-            raise HTTPException(status_code=401, detail="Unauthorized | Device Not Found")
+            raise HTTPException(status_code=401, detail="Device Not Found")
         
         course_class = db.query(CourseClass).filter(CourseClass.id == course_class_id).first()
         if(course_class == None):
-            raise HTTPException(status_code=401, detail="Unauthorized | Course Class Not Found")
+            raise HTTPException(status_code=401, detail="Course Class Not Found")
+        # delete all previous link of this device
+        db.query(CourseDevice).filter(CourseDevice.device_id == device_id).delete()
+        db.commit()
         
         course_device = CourseDevice(
             course_class_id = course_class.id,
@@ -342,18 +345,18 @@ def get_courses(course_class_id: str, token: Annotated[Union[str, None], Header(
 
         decoded_token = decode_jwt_token(token)
         if(decoded_token == None):
-            raise HTTPException(status_code=401, detail="Unauthorized | Token Decode Failed")
+            raise HTTPException(status_code=401, detail="Token Decode Failed")
         
         user = db.query(User).filter(User.id == decoded_token["id"]).first()
         if(user == None):
-            raise HTTPException(status_code=401, detail="Unauthorized | User Not Found")
+            raise HTTPException(status_code=401, detail="User Not Found")
         
         if(user.role != "teacher"):
-            raise HTTPException(status_code=401, detail="Unauthorized | Not a Teacher")
+            raise HTTPException(status_code=401, detail="Not a Teacher")
         
         course_class = db.query(CourseClass).filter(CourseClass.id == course_class_id).first()
         if(course_class == None):
-            raise HTTPException(status_code=401, detail="Unauthorized | Course Class Not Found")
+            raise HTTPException(status_code=401, detail="Course Class Not Found")
         
         attendances = (
             db.query(Attendance)
@@ -373,18 +376,18 @@ def update_attendance(attendance_id:str, is_present: bool, token: Annotated[Unio
 
         decoded_token = decode_jwt_token(token)
         if(decoded_token == None):
-            raise HTTPException(status_code=401, detail="Unauthorized | Token Decode Failed")
+            raise HTTPException(status_code=401, detail="Token Decode Failed")
         
         user = db.query(User).filter(User.id == decoded_token["id"]).first()
         if(user == None):
-            raise HTTPException(status_code=401, detail="Unauthorized | User Not Found")
+            raise HTTPException(status_code=401, detail="User Not Found")
         
         if(user.role != "teacher"):
-            raise HTTPException(status_code=401, detail="Unauthorized | Not a Teacher")
+            raise HTTPException(status_code=401, detail="Not a Teacher")
         
         attendance = db.query(Attendance).filter(Attendance.id == attendance_id).first()
         if(attendance == None):
-            raise HTTPException(status_code=401, detail="Unauthorized | Attendance Not Found")
+            raise HTTPException(status_code=401, detail="Attendance Not Found")
         
         attendance.is_present = is_present
         db.commit()
