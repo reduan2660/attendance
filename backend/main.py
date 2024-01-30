@@ -127,6 +127,59 @@ def get_courses(token: Annotated[Union[str, None], Header()] = None):
         
         except:
             raise HTTPException(status_code=401, detail="Unauthorized")
+        
+@app.get("/api/classes")
+def get_classes(course_id: str, token: Annotated[Union[str, None], Header()] = None):
+    with SessionLocal() as db:
+        try:
+            decoded_token = decode_jwt_token(token)
+            if(decoded_token == None):
+                raise HTTPException(status_code=401, detail="Unauthorized")
+
+            user = db.query(User).filter(User.id == decoded_token["id"]).first()
+            if(user == None):
+                raise HTTPException(status_code=401, detail="Unauthorized")
+            
+            if(user.role == "teacher"):
+                teacher = db.query(Teacher).filter(Teacher.user_id == user.id).first()
+                if(teacher == None):
+                    raise HTTPException(status_code=401, detail="Unauthorized")
+                
+                course = db.query(Course).filter(Course.id == course_id).first()
+                if(course == None):
+                    raise HTTPException(status_code=401, detail="Unauthorized")
+                
+                course_classes = db.query(CourseClass).filter(CourseClass.course_id == course.id).all()
+
+                # measure attendance percentage
+                for course_class in course_classes:
+                    attendances = db.query(Attendance).filter(Attendance.course_class_id == course_class.id).all()
+                    total = len(attendances)
+                    present = 0
+                    for attendance in attendances:
+                        if(attendance.is_present == True):
+                            present += 1
+                    course_class.attendance_percentage = present/total * 100
+
+                # return course_classes with attendance percentage
+                return course_classes
+
+                # return course_classes
+
+            elif(user.role == "student"):
+                student = db.query(Student).filter(Student.user_id == user.id).first()
+                if(student == None):
+                    raise HTTPException(status_code=401, detail="Unauthorized")
+                
+                course = db.query(Course).filter(Course.id == course_id).first()
+                if(course == None):
+                    raise HTTPException(status_code=401, detail="Unauthorized")
+                
+                course_classes = db.query(CourseClass).filter(CourseClass.course_id == course.id).all()
+                return course_classes
+        
+        except:
+            raise HTTPException(status_code=401, detail="Unauthorized")
 
 @app.get("/api/students")
 def get_students(batch: int,token: Annotated[Union[str, None], Header()] = None):
