@@ -235,23 +235,50 @@ def new_class(newClass: NewClass, token: Annotated[Union[str, None], Header()] =
         else:
             raise HTTPException(status_code=401, detail="Unauthorized | Not a Teacher")        
 
-
 @app.get("/api/attendance")
-def get_courses():
+def get_courses(course_class_id: int, token: Annotated[Union[str, None], Header()] = None):
     with SessionLocal() as db:
-        today = datetime.datetime.now().date()  # Get today's date
-        print(today.strftime("%Y-%m-%d"))
+        # today = datetime.datetime.now().date()  # Get today's date
+        # print(today.strftime("%Y-%m-%d"))
+        # attendances = (
+        #     db.query(Attendance)
+        #     .filter(Attendance.date == today.strftime("%Y-%m-%d"))
+        #     .order_by(Attendance.id.desc())
+        #     .options(
+        #         joinedload(Attendance.student),  # Eager load student data
+        #         joinedload(Attendance.course),   # Eager load course data
+        #     )
+        #     .all()
+        # )
+        # return attendances
+
+        decoded_token = decode_jwt_token(token)
+        if(decoded_token == None):
+            raise HTTPException(status_code=401, detail="Unauthorized | Token Decode Failed")
+        
+        user = db.query(User).filter(User.id == decoded_token["id"]).first()
+        if(user == None):
+            raise HTTPException(status_code=401, detail="Unauthorized | User Not Found")
+        
+        if(user.role != "teacher"):
+            raise HTTPException(status_code=401, detail="Unauthorized | Not a Teacher")
+        
+        course_class = db.query(CourseClass).filter(CourseClass.id == course_class_id).first()
+        if(course_class == None):
+            raise HTTPException(status_code=401, detail="Unauthorized | Course Class Not Found")
+        
         attendances = (
             db.query(Attendance)
-            .filter(Attendance.date == today.strftime("%Y-%m-%d"))
+            .filter(Attendance.course_class_id == course_class_id)
             .order_by(Attendance.id.desc())
             .options(
                 joinedload(Attendance.student),  # Eager load student data
-                joinedload(Attendance.course),   # Eager load course data
+                joinedload(Attendance.course_class.course),   # Eager load course data
             )
             .all()
         )
         return attendances
+
     
 
 
