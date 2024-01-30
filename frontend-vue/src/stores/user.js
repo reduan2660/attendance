@@ -26,6 +26,8 @@ export const useUserStore = defineStore("user", () => {
     localStorage.removeItem("token");
     isLoggedIn.value = false;
     user.value = null;
+
+    window.location.href = "/login";
   }
 
   return { isLoggedIn, user, logUserIn, logUserOut };

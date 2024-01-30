@@ -17,18 +17,25 @@ const { isLoggedIn, user, logUserOut } = useUserStore();
   </header> -->
 
   <header>
-    <div class="h-20 max-w-screen flex flex-row items-center justify-around">
-      <div><RouterLink to="/">Attendance</RouterLink></div>
+    <div
+      class="h-20 max-w-screen flex flex-row items-center justify-around shadow-md font-pathao text-lg"
+    >
+      <div><RouterLink to="/">CSEDU Attendance</RouterLink></div>
 
       <div>
         <div v-if="!isLoggedIn">
           <RouterLink to="/login">Login</RouterLink>
         </div>
 
-        <div v-else class="flex flex-row">
+        <div v-else class="flex flex-row gap-4 items-center">
           <div>{{ user.name }}</div>
-          |
-          <div @click="logUserOut">Logout</div>
+
+          <div
+            @click="logUserOut"
+            class="px-2 py-1 border-red-300 border-2 rounded cursor-pointer"
+          >
+            Logout
+          </div>
         </div>
       </div>
     </div>
