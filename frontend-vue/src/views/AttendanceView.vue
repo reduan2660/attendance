@@ -15,6 +15,11 @@ import Paginator from "primevue/paginator";
 
 import Header from "../components/Header.vue";
 import api from "../api";
+import { WSS_URL } from "../constants";
+
+// Toast
+import { toast } from "vue3-toastify";
+import "vue3-toastify/dist/index.css";
 
 const { isLoggedIn } = useUserStore();
 const router = useRouter();
@@ -45,6 +50,26 @@ onMounted(() => {
   if (!isLoggedIn) {
     router.push("/login");
   }
+  // fetchattendances();
+
+  const ws = new WebSocket(`${WSS_URL}/update`);
+  ws.onopen = () => {
+    console.log("connected");
+  };
+  ws.onmessage = (evt) => {
+    // listen to data sent from the websocket server
+    console.log(evt.data);
+    toast.success(evt.data);
+
+    /* Fetch attendance data */
+    fetchattendances();
+  };
+  ws.onclose = () => {
+    console.log("disconnected");
+    // automatically try to reconnect on connection loss
+  };
+
+  /* Fetch attendance data */
   fetchattendances();
 });
 </script>
