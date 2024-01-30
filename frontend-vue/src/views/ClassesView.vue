@@ -58,7 +58,12 @@ onMounted(() => {
     <Header />
 
     <div class="flex flex-col items-center my-6">
-      <div class="font-bold text-xl py-10">{{ course_name }}</div>
+      <div class="flex flex-row justify-between items-center w-1/2">
+        <div class="font-bold text-xl py-10">{{ course_name }}</div>
+        <div class="px-2 py-1 rounded border-2 border-blue-300 cursor-pointer">
+          Create new
+        </div>
+      </div>
 
       <!-- Loop thrugh all classes -->
       <div v-for="classs in classes" :key="classs.id">
@@ -71,7 +76,10 @@ onMounted(() => {
             </h5>
           </a>
 
-          <p>Attendance - {{ classs.attendance_percentage }} %</p>
+          <p>
+            Attendance -
+            {{ parseFloat(classs.attendance_percentage).toFixed(2) }} %
+          </p>
 
           <RouterLink
             :to="`/attendance?class_id=${classs.id}&course_name=${course_name}`"
