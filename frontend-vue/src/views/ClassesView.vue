@@ -73,7 +73,8 @@ onMounted(() => {
 
           <p>Attendance - {{ classs.attendance_percentage }} %</p>
 
-          <div
+          <RouterLink
+            :to="`/attendance?class_id=${classs.id}&course_name=${course_name}`"
             class="inline-flex items-center px-3 py-2 my-4 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300"
           >
             Take attendance
@@ -92,7 +93,7 @@ onMounted(() => {
                 d="M1 5h12m0 0L9 1m4 4L9 9"
               />
             </svg>
-          </div>
+          </RouterLink>
         </div>
       </div>
     </div>

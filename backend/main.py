@@ -289,21 +289,8 @@ def new_class(newClass: NewClass, token: Annotated[Union[str, None], Header()] =
             raise HTTPException(status_code=401, detail="Unauthorized | Not a Teacher")        
 
 @app.get("/api/attendance")
-def get_courses(course_class_id: int, token: Annotated[Union[str, None], Header()] = None):
+def get_courses(course_class_id: str, token: Annotated[Union[str, None], Header()] = None):
     with SessionLocal() as db:
-        # today = datetime.datetime.now().date()  # Get today's date
-        # print(today.strftime("%Y-%m-%d"))
-        # attendances = (
-        #     db.query(Attendance)
-        #     .filter(Attendance.date == today.strftime("%Y-%m-%d"))
-        #     .order_by(Attendance.id.desc())
-        #     .options(
-        #         joinedload(Attendance.student),  # Eager load student data
-        #         joinedload(Attendance.course),   # Eager load course data
-        #     )
-        #     .all()
-        # )
-        # return attendances
 
         decoded_token = decode_jwt_token(token)
         if(decoded_token == None):
@@ -326,7 +313,7 @@ def get_courses(course_class_id: int, token: Annotated[Union[str, None], Header(
             .order_by(Attendance.id.desc())
             .options(
                 joinedload(Attendance.student),  # Eager load student data
-                joinedload(Attendance.course_class.course),   # Eager load course data
+                joinedload(Attendance.course_class),   # Eager load course data
             )
             .all()
         )
@@ -376,9 +363,15 @@ async def new_attendance(deviceId: int, cardId: str):
             db.refresh(attendance)
             print(f"Attendance saved | card id: {cardId} from device : {deviceId} | student: {student.name} course: {course_class.course.name}")
             await send_to_websockets(f"Attendance received | {student.name} | {course_class.course.name}")
+        elif attendance.is_present == False:
+            attendance.is_present = True
+            db.commit()
+            print(f"Attendance updated | card id: {cardId} from device : {deviceId} | student: {student.name} course: {course_class.course.name}")
+            await send_to_websockets(f"Attendance received | {student.name} | {course_class.course.name}")
+
         else:
-            print(f"Attendance already taken | card id: {cardId} from device : {deviceId} | student: {student.name} course: {course_class.course.name}")
-            await send_to_websockets(f"Attendance already received | {student.name} | {course_class.course.name}")
+            print(f"Attendance already exists | card id: {cardId} from device : {deviceId} | student: {student.name} course: {course_class.course.name}")
+            # await send_to_websockets(f"Attendance already exists | {student.name} | {course_class.course.name}")
 
 # ------------ MQTT ------------
 # ------------------------------
