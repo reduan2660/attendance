@@ -219,7 +219,6 @@ def get_students(batch: int,token: Annotated[Union[str, None], Header()] = None)
 
 class NewClass(BaseModel):
     course: str
-    device: int
 
 @app.post("/api/newClass/")
 def new_class(newClass: NewClass, token: Annotated[Union[str, None], Header()] = None):
@@ -259,17 +258,16 @@ def new_class(newClass: NewClass, token: Annotated[Union[str, None], Header()] =
             db.refresh(course_class)
 
             # Link the course_class with the device
-            device = db.query(Device).filter(Device.id == newClass.device).first()
-            if(device == None):
-                raise HTTPException(status_code=401, detail="Unauthorized | Device Not Found")
+            # device = db.query(Device).filter(Device.id == newClass.device).first()
+            # if(device == None):
+            #     raise HTTPException(status_code=401, detail="Unauthorized | Device Not Found")
             
-            course_device = CourseDevice(
-                    course_class_id = course_class.id,
-                    device_id = device.id
-                )
-            db.add(course_device)
-            db.commit()
-            db.refresh(course_class)
+            # course_device = CourseDevice(
+            #         course_class_id = course_class.id,
+            #         device_id = device.id
+            #     )
+            # db.add(course_device)
+            # db.commit()
 
             # generate attendace = false for every batch students
             students = db.query(Student).filter(Student.batch == course.batch).all()
@@ -287,6 +285,56 @@ def new_class(newClass: NewClass, token: Annotated[Union[str, None], Header()] =
 
         else:
             raise HTTPException(status_code=401, detail="Unauthorized | Not a Teacher")        
+        
+
+@app.get("/api/devices")
+def get_devices(token: Annotated[Union[str, None], Header()] = None):
+    with SessionLocal() as db:
+
+        decoded_token = decode_jwt_token(token)
+        if(decoded_token == None):
+            raise HTTPException(status_code=401, detail="Unauthorized | Token Decode Failed")
+        
+        user = db.query(User).filter(User.id == decoded_token["id"]).first()
+        if(user == None):
+            raise HTTPException(status_code=401, detail="Unauthorized | User Not Found")
+        
+        if(user.role != "teacher"):
+            raise HTTPException(status_code=401, detail="Unauthorized | Not a Teacher")
+        
+        devices = db.query(Device).all()
+        return devices
+    
+@app.get("/api/linkDevice")
+def link_device(device_id: int, course_class_id: str, token: Annotated[Union[str, None], Header()] = None):
+    with SessionLocal() as db:
+
+        decoded_token = decode_jwt_token(token)
+        if(decoded_token == None):
+            raise HTTPException(status_code=401, detail="Unauthorized | Token Decode Failed")
+        
+        user = db.query(User).filter(User.id == decoded_token["id"]).first()
+        if(user == None):
+            raise HTTPException(status_code=401, detail="Unauthorized | User Not Found")
+        
+        if(user.role != "teacher"):
+            raise HTTPException(status_code=401, detail="Unauthorized | Not a Teacher")
+        
+        device = db.query(Device).filter(Device.id == device_id).first()
+        if(device == None):
+            raise HTTPException(status_code=401, detail="Unauthorized | Device Not Found")
+        
+        course_class = db.query(CourseClass).filter(CourseClass.id == course_class_id).first()
+        if(course_class == None):
+            raise HTTPException(status_code=401, detail="Unauthorized | Course Class Not Found")
+        
+        course_device = CourseDevice(
+            course_class_id = course_class.id,
+            device_id = device.id
+        )
+        db.add(course_device)
+        db.commit()
+        return course_device
 
 @app.get("/api/attendance")
 def get_courses(course_class_id: str, token: Annotated[Union[str, None], Header()] = None):

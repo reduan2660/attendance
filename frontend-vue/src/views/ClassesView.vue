@@ -31,6 +31,30 @@ const fetchClasses = () => {
     });
 };
 
+const newClass = () => {
+  api
+    .post(
+      `/newClass`,
+      {
+        course: course_id,
+      },
+      {
+        headers: {
+          token: localStorage.getItem("token"),
+        },
+      }
+    )
+    .then((response) => {
+      console.log(response.data);
+      toast.success("Class created");
+      fetchClasses();
+    })
+    .catch((error) => {
+      console.log(error);
+      toast.error("Error creating class");
+    });
+};
+
 const convertPythonTimestampToUTC6String = (pythonTimestamp) => {
   // Parse the Python timestamp
   const dateObject = new Date(pythonTimestamp);
@@ -60,7 +84,10 @@ onMounted(() => {
     <div class="flex flex-col items-center my-6">
       <div class="flex flex-row justify-between items-center w-1/2">
         <div class="font-bold text-xl py-10">{{ course_name }}</div>
-        <div class="px-2 py-1 rounded border-2 border-blue-300 cursor-pointer">
+        <div
+          class="px-2 py-1 rounded border-2 border-blue-300 cursor-pointer"
+          @click="newClass"
+        >
           Create new
         </div>
       </div>
