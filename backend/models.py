@@ -68,7 +68,7 @@ class CourseClass(Base):
     course          = relationship("Course", back_populates="course_classes")
     attendance      = relationship("Attendance", back_populates="course_class")
     course_devices  = relationship("CourseDevice", back_populates="course_class")
-    
+
 
 class Attendance(Base):
     __tablename__ = "attendance"
@@ -104,4 +104,3 @@ class CourseDevice(Base):
 
     course_class    = relationship("CourseClass", back_populates="course_devices")
     device          = relationship("Device", back_populates="course_devices")
-
